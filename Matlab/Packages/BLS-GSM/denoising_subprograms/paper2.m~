@@ -1,0 +1,10 @@
+clear
+im0 = imread('images/barco.png');
+im0 = double(im0);
+figure(1)
+rang = showIm(im0,'auto');title('Original image');
+
+sig = 10;		        % standard deviation
+PS = ones(size(im0));	% power spectral density (in this case, flat, i.e., white noise)
+seed = 0; 
+
