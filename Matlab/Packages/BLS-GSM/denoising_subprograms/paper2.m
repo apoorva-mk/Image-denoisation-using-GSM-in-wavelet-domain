@@ -47,3 +47,12 @@ figure,imshow(uint8(y_new));
 
 
 
+%Daubechies Wavelet decomposition
+[cA1,cH1,cV1,cD1] = dwt2(im0,'db2');
+
+%Finding all neighbourhoods
+
+
+
+
+

@@ -41,9 +41,13 @@ ca = upsample(cA,2);
 % add 2-1 zeroes intermediately
 % might have to delete some values
 %then reshape and display
-ca = ca[:677
+ca = ca(1:l*h);
 y_new = reshape(ca,[l,h]);
-figure,imshow(y_new);
+figure,imshow(uint8(y_new));
 
 
+
+%Wavelet decomposition
+level=5;Fs=1/0.003;
+y = d2wavelet(im0,Fs,level);
 
