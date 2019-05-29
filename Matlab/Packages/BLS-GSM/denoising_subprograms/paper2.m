@@ -51,7 +51,7 @@ figure,imshow(uint8(y_new));
 [cA1,cH1,cV1,cD1] = dwt2(im0,'db2');
 
 %EM Implementation
-%Initialisation
+%Initialisation 
 k = 10;
 numz = 13;
 Pk = ones(1,k)/k;
