@@ -21,7 +21,7 @@ PS = ones(size(im0));	% power spectral density (in this case, flat, i.e., white 
 seed = 0;               % random seed
 
 % Pyramidal representation parameters
-Nsc = ceil(log2(min(Ny,Nx)) - 4);  % Number of scales (adapted to the image size)
+Nsc = ceil(log2(min(Ny,Nx)) - 4);   % Number of scales (adapted to the image size)
 Nor = 3;				            % Number of orientations (for X-Y separable wavelets it can only be 3)
 repres1 = 'uw';                     % Type of pyramid (shift-invariant version of an orthogonal wavelet, in this case)
 repres2 = 'daub1';                  % Type of wavelet (daubechies wavelet, order 2N, for 'daubN'; in this case, 'Haar')

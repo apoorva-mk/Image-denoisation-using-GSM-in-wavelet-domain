@@ -51,33 +51,18 @@ rang = showIm(im,'auto');title('Noisy Image');
 [cA1,cH1,cV1,cD1] = dwt2(im0,'db2');
 
 %EM Implementation
-patchsize = 5;
+patch = 5;
 
 %padding with zeros to make it divisible by patch size
-lpad = patchsize - mod(l,patchsize);
-hpad = patchsize - mod(h,patchsize);
+lpad = patch - mod(l,patch);
+hpad = patch - mod(h,patch);
 paddedim = padarray(im, [lpad,hpad], 'post'); 
-
-%Vectorising the neighbourhoods
-%Extracting patches and vectorising the patches and making a new matrix
-patchmatrix = [];
-for i = 1:patchsize:h-patchsize+1
-    for j = 1:patchsize:l-patchsize+1
-        h_end = i+patchsize-1;
-        l_end = j+patchsize-1;
-        patch = paddedim(i:h_end , j:l_end);
-        patch = reshape(patch,[],1);
-        patchmatrix = [ patchmatrix patch];
-    end
-end
-        
 
 %Initialisation 
 k = 3;
 numz = 13;
 Pk = ones(1,k)/k;
 pk = ones(k,numz)/(k*numz);
-
 
 
 
