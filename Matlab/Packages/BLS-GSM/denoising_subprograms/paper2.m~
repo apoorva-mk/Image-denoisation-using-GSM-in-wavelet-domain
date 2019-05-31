@@ -77,10 +77,16 @@ end
 %Initialisation of proabability vectors 
 k = 3;
 numz = 13;
-P_k = ones(1,k)/k;
-p_y_zk = ones(m,k,numz)/(k*numz);
-p_z_k = ones(1,numz)/numz;
-p_y_k = ones(m,k)/k;
+P_k_n = ones(1,k)/k;
+p_y_zk_n = ones(m,k,numz)/(k*numz);
+p_z_k_n = ones(1,numz)/numz;
+p_y_k_n = ones(m,k)/k;
+
+%Next value vectors intialistion
+P_k_n1 = zeros(1,k);
+p_y_zk_n1 = zeros(m,k,numz);
+p_z_k_n1 = zeros(1,numz);
+p_y_k_n1 = zeros(m,k);
 
 %Initialising the covariance matrices
 Cov_k = [];
@@ -91,7 +97,7 @@ for i = 1:patchsize:h-patchsize+1
         l_end = j+patchsize-1;
         patch = paddedim(i:h_end , j:l_end);
         covtemp = cov(patch);
-        Cov_k = [ Cov_k covtemp];
+        Cov_k(:, :, covcount+1) = covtemp ;
         covcount = covcount + 1;
         if covcount == k
             break
@@ -104,6 +110,17 @@ end
 
 
 %EM Algorithm implementation
+%Estimating the parameters
+
+while( abs(sum(P_k_n)-sum(P_k_n1)) > 0.001)
+%Equation 1:
+P_k_n1 = times (P_k_n , sum(p_y_k_n)) /  ( ( P_k_n * sum(p_y_k_n)) * m);
+
+%Equation 2:
+p_k_z_n1 = 
+end
+
+
 
 
 
