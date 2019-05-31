@@ -51,18 +51,66 @@ rang = showIm(im,'auto');title('Noisy Image');
 [cA1,cH1,cV1,cD1] = dwt2(im0,'db2');
 
 %EM Implementation
-patch = 5;
+patchsize = 5;
 
 %padding with zeros to make it divisible by patch size
-lpad = patch - mod(l,patch);
-hpad = patch - mod(h,patch);
+lpad = patchsize - mod(l,patchsize);
+hpad = patchsize - mod(h,patchsize);
 paddedim = padarray(im, [lpad,hpad], 'post'); 
 
-%Initialisation 
+%Vectorising the neighbourhoods
+%Extracting patches and vectorising the patches and making a new matrix
+patchmatrix = [];
+for i = 1:patchsize:h-patchsize+1
+    for j = 1:patchsize:l-patchsize+1
+        h_end = i+patchsize-1;
+        l_end = j+patchsize-1;
+        patch = paddedim(i:h_end , j:l_end);
+        patch = reshape(patch,[],1);
+        patchmatrix = [ patchmatrix patch];
+    end
+end
+
+%m stores the number of non-overlapping patches
+[ patchlen, m ] = size(patchmatrix);
+
+%Initialisation of proabability vectors 
 k = 3;
 numz = 13;
-Pk = ones(1,k)/k;
-pk = ones(k,numz)/(k*numz);
+P_k = ones(1,k)/k;
+p_y_zk = ones(m,k,numz)/(k*numz);
+p_z_k = ones(1,numz)/numz;
+p_y_k = ones(m,k)/k;
+
+%Initialising the covariance matrices
+Cov_k = [];
+covcount = 0;
+for i = 1:patchsize:h-patchsize+1
+    for j = 1:patchsize:l-patchsize+1
+        h_end = i+patchsize-1;
+        l_end = j+patchsize-1;
+        patch = paddedim(i:h_end , j:l_end);
+        covtemp = cov(patch);
+        Cov_k = [ Cov_k covtemp];
+        covcount = covcount + 1;
+        if covcount == k
+            break
+        end
+    end
+    if covcount == k
+        break
+    end
+end   
+
+
+%EM Algorithm implementation
+
+
+
+
+
+
+
 
 
 

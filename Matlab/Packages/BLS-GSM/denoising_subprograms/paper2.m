@@ -70,13 +70,47 @@ for i = 1:patchsize:h-patchsize+1
         patchmatrix = [ patchmatrix patch];
     end
 end
-        
 
-%Initialisation 
+%m stores the number of non-overlapping patches
+[ patchlen, m ] = size(patchmatrix);
+
+%Initialisation of proabability vectors 
 k = 3;
 numz = 13;
-Pk = ones(1,k)/k;
-pk = ones(k,numz)/(k*numz);
+P_k = ones(1,k)/k;
+p_y_zk = ones(m,k,numz)/(k*numz);
+p_z_k = ones(1,numz)/numz;
+p_y_k = ones(m,k)/k;
+
+%Initialising the covariance matrices
+Cov_k = [];
+covcount = 0;
+for i = 1:patchsize:h-patchsize+1
+    for j = 1:patchsize:l-patchsize+1
+        h_end = i+patchsize-1;
+        l_end = j+patchsize-1;
+        patch = paddedim(i:h_end , j:l_end);
+        covtemp = cov(patch);
+        Cov_k(:, :, covcount+1) = covtemp ;
+        covcount = covcount + 1;
+        if covcount == k
+            break
+        end
+    end
+    if covcount == k
+        break
+    end
+end   
+
+
+%EM Algorithm implementation
+%Estimating the parameters
+
+
+
+
+
+
 
 
 
