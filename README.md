@@ -1,3 +1,3 @@
 # Image-denoisation-using-MGSM-in-wavelet-domain
 
-Project work done during IAS SRFP at IISc.
+Improving the Image denoising algorithm by using mixture of Gaussian scale mixtures and using neural nets for predicting the covariance matrices
