@@ -93,9 +93,14 @@ p_z = ones(1,numz)/numz;
 P_k_n1 = zeros(1,k);
 p_z_k_n1 = zeros(numz,k)/numz;
 
+%Error vector
+err = ones(1,3);
+mean_error = mean(err);
+
 
 %Initialising the covariance matrices  !!!!!!!Change the intialisation!!!!!
 Cov_k = [];
+Cov_k_n1 = [ patchsize, patchsize, k ];
 covcount = 0;
 for i = 1:patchsize:h-patchsize+1
     for j = 1:patchsize:l-patchsize+1
@@ -120,7 +125,7 @@ C_w = ones(patchsize, patchsize);
 %EM Algorithm implementation
 %Estimating the parameters
 
-while( abs(sum(P_k_n)-sum(P_k_n1)) > 0.001)
+while( mean_error > 0.001)
     
     %Calculating other probabilities that are required
     %Calculating p(y(m)/k)
@@ -167,16 +172,33 @@ while( abs(sum(P_k_n)-sum(P_k_n1)) > 0.001)
             end
             matsum = matsum + (matsum_k_z / coeff_sum) * p_z(j);
         end
-        Cov_k(i) = matsum - C_w; 
+        Cov_k_n1(i) = matsum - C_w; 
     end    
       
     
-    %Check the differences!!!!!!!!!!!!!!!!!!! 
-    %Normalise and take average
+    %Normalise and find mean square error
+    normP_k_n = P_k_n - min(P_k_n(:));
+    normP_k_n = P_k_n ./ max(normP_k_n(:));
+    normP_k_n1 = P_k_n1 - min(P_k_n1(:));
+    normP_k_n1 = P_k_n1 ./ max(normP_k_n1(:));
     
+    err(1) = immse(normP_k_n, normP_k_n1);
     
+    normp_k_z_n = p_k_z_n - min(p_k_z_n(:));
+    normp_k_z_n = p_k_z_n ./ max(normp_k_z_n(:));
+    normp_k_z_n1= p_k_z_n1 - min(p_k_z_n1(:));
+    normp_k_z_n1 = p_k_z_n1 ./ max(normp_k_z_n1(:));
     
+    err(2) = immse(normp_k_z_n, normp_k_z_n1);
     
+    normCov_k = Cov_k - min(Cov_k(:));
+    normCov_k = Cov_k ./ max(normCov_k(:));
+    normCov_k_n1 = Cov_k_n1 - min(Cov_k_n1(:));
+    normCov_k_n1 = Cov_k_n1 ./ max(normCov_k_n1(:));
+    
+    err(3) = immse( normCov_k, normCov_k_n1);
+    
+    mean_error = mean(err);
     
 end
 
