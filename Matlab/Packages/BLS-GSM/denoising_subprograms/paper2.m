@@ -61,11 +61,12 @@ paddedim = padarray(im, [lpad,hpad], 'post');
 %Vectorising the neighbourhoods
 %Extracting patches and vectorising the patches and making a new matrix
 patchmatrix = [];
-for i = 1:patchsize:h-patchsize+1
-    for j = 1:patchsize:l-patchsize+1
+for i = 1:patchsize:(h-patchsize+1)
+    for j = 1:patchsize:(l-patchsize+1)
+        
         h_end = i+patchsize-1;
         l_end = j+patchsize-1;
-        patch = paddedim(i:h_end , j:l_end);
+        patch = paddedim(j:l_end , i:h_end);
         patch = reshape(patch,[],1);
         patchmatrix = [ patchmatrix patch];
     end
@@ -129,13 +130,13 @@ while( mean_error > 0.001)
     
     %Calculating other probabilities that are required
     %Calculating p(y(m)/k)
-    p_ym_k = zeroes(m, k);
-    p_ym = zeroes(1,m);
-    p_ym_k_z = zeroes(m,k,z);
+    p_ym_k = zeros(m, k);
+    p_ym = zeros(1,m);
+    p_ym_k_z = zeros(m,k,numz);
     for i = 1:m
         for j = 1:k
             for k = 1:numz
-                p_ym_k_z = gaussian_dist( patchmatrix(1:patchlen,i), zi(k)*Cov_k(:,:,j)+ C_w, numel(C_k));
+                p_ym_k_z = gaussian_dist( patchmatrix(1:patchlen,i), zi(k)*Cov_k(:,:,j)+ C_w, numel(Cov_k(:,:,j)));
             end
             p_ym_k(i,j) = sum(times( p_ym_k_z(i,j,:), p_z));
         end
@@ -199,6 +200,12 @@ while( mean_error > 0.001)
     err(3) = immse( normCov_k, normCov_k_n1);
     
     mean_error = mean(err);
+    
+    %Update the values
+    P_k_n = P_k_n1;
+    p_k_z_n = p_k_z_n1;
+    Cov_k = Cov_k_n1;
+    
     
 end
 
