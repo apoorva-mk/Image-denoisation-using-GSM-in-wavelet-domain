@@ -114,6 +114,8 @@ for i = 1:patchsize:h-patchsize+1
     end
 end   
 
+%Covarinace matrix of noise
+C_w = ones(patchsize, patchsize);
 
 %EM Algorithm implementation
 %Estimating the parameters
@@ -124,25 +126,58 @@ while( abs(sum(P_k_n)-sum(P_k_n1)) > 0.001)
     %Calculating p(y(m)/k)
     p_ym_k = zeroes(m, k);
     p_ym = zeroes(1,m);
-    p_ym_k_z = zeroes(m,k,z)
+    p_ym_k_z = zeroes(m,k,z);
     for i = 1:m
         for j = 1:k
             for k = 1:numz
                 p_ym_k_z = gaussian_dist( patchmatrix(1:patchlen,i), zi(k)*Cov_k(:,:,j)+ C_w, numel(C_k));
             end
-            %Change this!!!!!!!
-            p_ym_k(i,j) = prob_y_given_k( patchmatrix(1:patchlen, i), Cov_k(:,:,j), p_z);
+            p_ym_k(i,j) = sum(times( p_ym_k_z(i,j,:), p_z));
         end
         p_ym(i) = prob_y( p_ym_k( i, :), P_k_n);
     end
 
     %Equation 1:
     %P_k_n1 = times (P_k_n , sum(p_y_k_n)) /  ( ( P_k_n * sum(p_y_k_n)) * m);
-    P_k_n1 =  times ( (P_k_n).', ( sum(p_ym_k)./ p_ym )) / m; 
-
+    P_k_n1 =  times ( (P_k_n).', ( sum(p_ym_k)./ p_ym )) / m;
+    
+    
     %Equation 2:
-    for i = 1:m
-        p_k_z_n1 = p_k_z_n * 
+    intermediate = zeroes(numz, k);
+    for i = 1:numz
+        for j = 1:k
+            intermediate(i,j) = sum( times( p_ym_k_z(:,i,j), p_ym));
+        end
+    end
+    p_k_z_n1 = times (p_k_z_n, intermediate)./m;
+    p_k_z_n1 = bsxfun(@rdivide, p_k_z_n1, P_k_n1);
+     
+    
+    %Equation 3:
+    for i= 1:k
+        matsum = zeroes(patchsize, patchsize);
+        for j = 1:numz
+            matsum_k_z = zeroes(patchsize, patchsize);
+            coeff_sum = 0;
+            for k = 1:m
+                y_m = reshape( patchmatrix(:,k), patchsize, patchsize);
+                coeff = p_ym(k)* p_ym_k_z(k,i,j);
+                matsum_k_z = matsum_k_z + coeff * ( y_m * y_m.' );
+                coeff_sum = coeff_sum + coeff;
+            end
+            matsum = matsum + (matsum_k_z / coeff_sum) * p_z(j);
+        end
+        Cov_k(i) = matsum - C_w; 
+    end    
+      
+    
+    %Check the differences!!!!!!!!!!!!!!!!!!! 
+    %Normalise and take average
+    
+    
+    
+    
+    
 end
 
 
