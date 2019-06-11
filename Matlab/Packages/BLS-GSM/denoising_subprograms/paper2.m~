@@ -126,9 +126,9 @@ err = ones(1,3);
 mean_error = mean(err);
 
 
-%Initialising the covariance matrices  !!!!!!!Change the intialisation!!!!!
-Cov_k = [patchsize, patchsize, k];
-Cov_k_n1 = [ patchsize, patchsize, k ];
+%Initialising the covariance matrices
+Cov_k = zeros(patchsize^2, patchsize^2, k);
+Cov_k_n1 = zeros(patchsize^2, patchsize^2, k);
 covcount = 0;
 
 n = 0;
@@ -141,7 +141,12 @@ for ny = -Ly:Ly	% spatial neighbors
 	end
 end
 
-C_w = innerProd(W)/nexp;
+temp = innerProd(W)/nexp;
+
+for i = 1:k
+    Cov_k(:,:,i) = temp;
+end
+
 % for i = 1:patchsize:h-patchsize+1
 %     for j = 1:patchsize:l-patchsize+1
 %         h_end = i+patchsize-1;

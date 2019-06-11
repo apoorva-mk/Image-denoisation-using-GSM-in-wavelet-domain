@@ -126,9 +126,9 @@ err = ones(1,3);
 mean_error = mean(err);
 
 
-%Initialising the covariance matrices  !!!!!!!Change the intialisation!!!!!
-Cov_k = [patchsize, patchsize, k];
-Cov_k_n1 = zeros(patchsize, patchsize, k);
+%Initialising the covariance matrices
+Cov_k = zeros(patchsize^2, patchsize^2, k);
+Cov_k_n1 = zeros(patchsize^2, patchsize^2, k);
 covcount = 0;
 
 n = 0;
@@ -177,10 +177,12 @@ while( mean_error > 0.001)
     p_ym_k_z = zeros(m,k,numz);
     for i = 1:m
         for j = 1:k
-            for k = 1:numz
-                p_ym_k_z = gaussian_dist( patchmatrix(1:patchlen,i), zi(k)*Cov_k(:,:,j)+ C_w, numel(Cov_k(:,:,j)));
+            for q = 1:numz
+                p_ym_k_z(i,j,q) = gaussian_dist( patchmatrix(1:patchlen,i), zi(q)*Cov_k(:,:,j)+ C_w, numel(Cov_k(:,:,j)));
             end
-            p_ym_k(i,j) = sum(times( p_ym_k_z(i,j,:), p_z));
+            squeezed_array = p_ym_k_z(i,j,:);
+            squeezed_array = squeezed_array(:,:);
+            p_ym_k(i,j) = sum(times( squeezed_array, p_z));
         end
         p_ym(i) = prob_y( p_ym_k( i, :), P_k_n);
     end
