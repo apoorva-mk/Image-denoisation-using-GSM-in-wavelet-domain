@@ -66,7 +66,7 @@ for i = 1:patchsize:(h-patchsize+1)
         
         h_end = i+patchsize-1;
         l_end = j+patchsize-1;
-        patch = paddedim(i:h_end , j:l_end);
+        patch = paddedim(j:l_end , i:h_end);
         patch = reshape(patch,[],1);
         patchmatrix = [ patchmatrix patch];
     end
@@ -74,6 +74,33 @@ end
 
 %m stores the number of non-overlapping patches
 [ patchlen, m ] = size(patchmatrix);
+
+%Finding C_w
+[nv,nh,nb] = size(im0);
+block = [ 5,5];
+nblv = nv-block(1)+1;	% Discard the outer coefficients 
+nblh = nh-block(2)+1;   % for the reference (centrral) coefficients (to avoid boundary effects)
+Ly = (block(1)-1)/2;		% block(1) and block(2) must be odd!
+Lx = (block(2)-1)/2;
+if (Ly~=floor(Ly))||(Lx~=floor(Lx))
+   error('Spatial dimensions of neighborhood must be odd!');
+end   
+nexp = nblv*nblh;	
+N = prod(block)
+foo = zeros(nexp,N);
+
+% Compute covariance of noise from 'noise'
+n = 0;
+for ny = -Ly:Ly	% spatial neighbors
+	for nx = -Lx:Lx
+		n = n + 1;
+		foo = shift(noise(:,:,1),[ny nx]);
+		foo = foo(Ly+1:Ly+nblv,Lx+1:Lx+nblh);
+		W(:,n) = vector(foo);
+	end
+end
+
+C_w = innerProd(W)/nexp;
 
 %Initialisation of proabability vectors 
 k = 3;
@@ -100,28 +127,38 @@ mean_error = mean(err);
 
 
 %Initialising the covariance matrices  !!!!!!!Change the intialisation!!!!!
-Cov_k = [];
+Cov_k = [patchsize, patchsize, k];
 Cov_k_n1 = [ patchsize, patchsize, k ];
 covcount = 0;
-for i = 1:patchsize:h-patchsize+1
-    for j = 1:patchsize:l-patchsize+1
-        h_end = i+patchsize-1;
-        l_end = j+patchsize-1;
-        patch = paddedim(i:h_end , j:l_end);
-        covtemp = cov(patch);
-        Cov_k(:, :, covcount+1) = covtemp ;
-        covcount = covcount + 1;
-        if covcount == k
-            break
-        end
-    end
-    if covcount == k
-        break
-    end
-end   
 
-%Covarinace matrix of noise
-C_w = ones(patchsize, patchsize);
+n = 0;
+for ny = -Ly:Ly	% spatial neighbors
+	for nx = -Lx:Lx
+		n = n + 1;
+		foo = shift(im(:,:,1),[ny nx]);
+		foo = foo(Ly+1:Ly+nblv,Lx+1:Lx+nblh);
+		W(:,n) = vector(foo);
+	end
+end
+
+C_w = innerProd(W)/nexp;
+% for i = 1:patchsize:h-patchsize+1
+%     for j = 1:patchsize:l-patchsize+1
+%         h_end = i+patchsize-1;
+%         l_end = j+patchsize-1;
+%         patch = paddedim(i:h_end , j:l_end);
+%         covtemp = cov(patch);
+%         Cov_k(:, :, covcount+1) = covtemp ;
+%         covcount = covcount + 1;
+%         if covcount == k
+%             break
+%         end
+%     end
+%     if covcount == k
+%         break
+%     end
+% end   
+
 
 %EM Algorithm implementation
 %Estimating the parameters
@@ -130,13 +167,13 @@ while( mean_error > 0.001)
     
     %Calculating other probabilities that are required
     %Calculating p(y(m)/k)
-    p_ym_k = zeroes(m, k);
-    p_ym = zeroes(1,m);
-    p_ym_k_z = zeroes(m,k,z);
+    p_ym_k = zeros(m, k);
+    p_ym = zeros(1,m);
+    p_ym_k_z = zeros(m,k,numz);
     for i = 1:m
         for j = 1:k
             for k = 1:numz
-                p_ym_k_z = gaussian_dist( patchmatrix(1:patchlen,i), zi(k)*Cov_k(:,:,j)+ C_w, numel(C_k));
+                p_ym_k_z = gaussian_dist( patchmatrix(1:patchlen,i), zi(k)*Cov_k(:,:,j)+ C_w, numel(Cov_k(:,:,j)));
             end
             p_ym_k(i,j) = sum(times( p_ym_k_z(i,j,:), p_z));
         end
@@ -144,7 +181,6 @@ while( mean_error > 0.001)
     end
 
     %Equation 1:
-    %P_k_n1 = times (P_k_n , sum(p_y_k_n)) /  ( ( P_k_n * sum(p_y_k_n)) * m);
     P_k_n1 =  times ( (P_k_n).', ( sum(p_ym_k)./ p_ym )) / m;
     
     
