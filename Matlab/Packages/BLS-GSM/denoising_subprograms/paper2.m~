@@ -116,6 +116,8 @@ end
 
 temp = innerProd(W)/nexp;
 
+
+
 for i = 1:k
     Cov_k(:,:,i) = temp;
 end
@@ -135,7 +137,7 @@ while( mean_error > 0.001)
 
     for i = 1:k
         for j = 1:numz
-            p_ym_k_z (:,i,j) = gaussian_dist( patchmatrix, zi(j)*Cov_k(:,:,i)+ C_w, numel(Cov_k(:,:,i)));
+            p_ym_k_z (:,i,j) = gaussian_dist( patchmatrix, zi(j)*Cov_k(:,:,i)+ C_w, patchlen);
         end
     end
     
@@ -143,21 +145,23 @@ while( mean_error > 0.001)
         p_ym_k = p_ym_k + p_ym_k_z(:,:,i)*p_z(i);
     end
     
-    p_ym = times( sum(p_ym_
+    p_ym = p_ym_k * P_k_n';
+    
+    
         
 
     %Equation 1:
-    P_k_n1 =  times ( (P_k_n).', ( sum(p_ym_k)./ p_ym )) / m;
+    P_k_n1 =  times ( (P_k_n).', ( sum(p_ym_k./ p_ym'))) / m;
     
     
     %Equation 2:
-    intermediate = zeroes(numz, k);
+    intermediate = zeros(numz, k);
     for i = 1:numz
         for j = 1:k
-            intermediate(i,j) = sum( times( p_ym_k_z(:,i,j), p_ym));
+            intermediate(i,j) = sum( times( p_ym_k_z(:,j,i), p_ym));
         end
     end
-    p_k_z_n1 = times (p_k_z_n, intermediate)./m;
+    p_x_z_n1 = times (p_k_z_n, intermediate)./m;
     p_k_z_n1 = bsxfun(@rdivide, p_k_z_n1, P_k_n1);
      
     

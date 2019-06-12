@@ -116,6 +116,8 @@ end
 
 temp = innerProd(W)/nexp;
 
+
+
 for i = 1:k
     Cov_k(:,:,i) = temp;
 end
@@ -126,6 +128,7 @@ end
 
 while( mean_error > 0.001)
     
+    
     %Calculating other probabilities that are required
     %Calculating p(y(m)/k)
     p_ym_k = zeros(m, k);
@@ -135,7 +138,7 @@ while( mean_error > 0.001)
 
     for i = 1:k
         for j = 1:numz
-            p_ym_k_z (:,i,j) = gaussian_dist( patchmatrix, zi(j)*Cov_k(:,:,i)+ C_w, numel(Cov_k(:,:,i)));
+            p_ym_k_z (:,i,j) = gaussian_dist( patchmatrix, zi(j)*Cov_k(:,:,i)+ C_w, patchlen);
         end
     end
     
@@ -143,39 +146,42 @@ while( mean_error > 0.001)
         p_ym_k = p_ym_k + p_ym_k_z(:,:,i)*p_z(i);
     end
     
-    p_ym = times( sum(p_ym_k), P_k_n);
+    p_ym = p_ym_k * P_k_n';
+    
+    p_ym(p_ym == 0) = eps;
+    
         
 
     %Equation 1:
-    P_k_n1 =  times ( (P_k_n).', ( sum(p_ym_k)./ p_ym )) / m;
+    P_k_n1 =  times ( (P_k_n), ( sum(p_ym_k./ p_ym))) / m;
     
     
     %Equation 2:
-    intermediate = zeroes(numz, k);
+    intermediate = zeros(numz, k);
     for i = 1:numz
         for j = 1:k
-            intermediate(i,j) = sum( times( p_ym_k_z(:,i,j), p_ym));
+            intermediate(i,j) = sum( times( p_ym_k_z(:,j,i), p_ym));
         end
     end
-    p_k_z_n1 = times (p_k_z_n, intermediate)./m;
-    p_k_z_n1 = bsxfun(@rdivide, p_k_z_n1, P_k_n1);
+    p_z_k_n1 = times (p_z_k_n, intermediate)./m;
+    p_z_k_n1 = bsxfun(@rdivide, p_z_k_n1, P_k_n1);
      
     
     %Equation 3:
     for i= 1:k
-        matsum = zeroes(patchsize, patchsize);
+        matsum = zeros(patchlen, patchlen);
         for j = 1:numz
-            matsum_k_z = zeroes(patchsize, patchsize);
+            matsum_k_z = zeros(patchlen, patchlen);
             coeff_sum = 0;
-            for k = 1:m
-                y_m = reshape( patchmatrix(:,k), patchsize, patchsize);
-                coeff = p_ym(k)* p_ym_k_z(k,i,j);
+            for r = 1:m
+                y_m = ( patchmatrix(:,r));%, patchsize, patchsize);
+                coeff = p_ym(r)* p_ym_k_z(r,i,j);
                 matsum_k_z = matsum_k_z + coeff * ( y_m * y_m.' );
                 coeff_sum = coeff_sum + coeff;
             end
             matsum = matsum + (matsum_k_z / coeff_sum) * p_z(j);
         end
-        Cov_k_n1(i) = matsum - C_w; 
+        Cov_k_n1(:,:,i) = matsum - C_w; 
     end    
       
     
@@ -187,12 +193,12 @@ while( mean_error > 0.001)
     
     err(1) = immse(normP_k_n, normP_k_n1);
     
-    normp_k_z_n = p_k_z_n - min(p_k_z_n(:));
-    normp_k_z_n = p_k_z_n ./ max(normp_k_z_n(:));
-    normp_k_z_n1= p_k_z_n1 - min(p_k_z_n1(:));
-    normp_k_z_n1 = p_k_z_n1 ./ max(normp_k_z_n1(:));
+    normp_z_k_n = p_z_k_n - min(p_z_k_n(:));
+    normp_z_k_n = p_z_k_n ./ max(normp_z_k_n(:));
+    normp_z_k_n1= p_z_k_n1 - min(p_z_k_n1(:));
+    normp_z_k_n1 = p_z_k_n1 ./ max(normp_z_k_n1(:));
     
-    err(2) = immse(normp_k_z_n, normp_k_z_n1);
+    err(2) = immse(normp_z_k_n, normp_z_k_n1);
     
     normCov_k = Cov_k - min(Cov_k(:));
     normCov_k = Cov_k ./ max(normCov_k(:));
@@ -205,7 +211,7 @@ while( mean_error > 0.001)
     
     %Update the values
     P_k_n = P_k_n1;
-    p_k_z_n = p_k_z_n1;
+    p_z_k_n = p_z_k_n1;
     Cov_k = Cov_k_n1;
     
     
