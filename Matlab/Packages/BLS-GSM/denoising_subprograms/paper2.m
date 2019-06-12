@@ -15,43 +15,16 @@ im = im0 + sig*noise;
 figure(2)
 rang = showIm(im,'auto');title('Noisy Image');
 
-[l,h]= size(im0);
-
-%calculating psnr
-%peaksnr = psnr(im0,im);
-
-
-%dwt transform
-%first vectorise
-%im01 = im0(:);
-
-%now apply wavelet transform
-%[cA,cD] = dwt(im01,'sym4');
-
-%cA and cD are the low and high pass filters
-%X = idwt(cA,cD,'sym4');
-
-%reshape
-%x = reshape(X,[l,h]);
-%x = uint8(x);
-%figure,imshow(x);
-
-%to view individual components cA and cD, need to upsample
-%ca = upsample(cA,2);
-% add 2-1 zeroes intermediately
-% might have to delete some values
-%then reshape and display
-%ca = ca(1:l*h);
-%y_new = reshape(ca,[l,h]);
-%figure,imshow(uint8(y_new));
-
-
 
 %Daubechies Wavelet decomposition
 [cA1,cH1,cV1,cD1] = dwt2(im0,'db2');
 
 %EM Implementation
 patchsize = 5;
+
+im = cV1;
+im0 = im;
+[l,h]= size(im);
 
 %padding with zeros to make it divisible by patch size
 lpad = patchsize - mod(l,patchsize);
@@ -147,23 +120,6 @@ for i = 1:k
     Cov_k(:,:,i) = temp;
 end
 
-% for i = 1:patchsize:h-patchsize+1
-%     for j = 1:patchsize:l-patchsize+1
-%         h_end = i+patchsize-1;
-%         l_end = j+patchsize-1;
-%         patch = paddedim(i:h_end , j:l_end);
-%         covtemp = cov(patch);
-%         Cov_k(:, :, covcount+1) = covtemp ;
-%         covcount = covcount + 1;
-%         if covcount == k
-%             break
-%         end
-%     end
-%     if covcount == k
-%         break
-%     end
-% end   
-
 
 %EM Algorithm implementation
 %Estimating the parameters
@@ -175,17 +131,20 @@ while( mean_error > 0.001)
     p_ym_k = zeros(m, k);
     p_ym = zeros(1,m);
     p_ym_k_z = zeros(m,k,numz);
-    for i = 1:m
-        for j = 1:k
-            for q = 1:numz
-                p_ym_k_z(i,j,q) = gaussian_dist( patchmatrix(1:patchlen,i), zi(q)*Cov_k(:,:,j)+ C_w, numel(Cov_k(:,:,j)));
-            end
-            squeezed_array = p_ym_k_z(i,j,:);
-            squeezed_array = squeezed_array(:,:);
-            p_ym_k(i,j) = sum(times( squeezed_array, p_z));
+
+
+    for i = 1:k
+        for j = 1:numz
+            p_ym_k_z (:,i,j) = gaussian_dist( patchmatrix, zi(j)*Cov_k(:,:,i)+ C_w, numel(Cov_k(:,:,i)));
         end
-        p_ym(i) = prob_y( p_ym_k( i, :), P_k_n);
     end
+    
+    for i = 1:numz
+        p_ym_k = p_ym_k + p_ym_k_z(:,:,i)*p_z(i);
+    end
+    
+    p_ym = times( sum(p_ym_k), P_k_n);
+        
 
     %Equation 1:
     P_k_n1 =  times ( (P_k_n).', ( sum(p_ym_k)./ p_ym )) / m;
