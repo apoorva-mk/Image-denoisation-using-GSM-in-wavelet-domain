@@ -125,10 +125,10 @@ end
 
 %EM Algorithm implementation
 %Estimating the parameters
-
+iter = 1;
 while( mean_error > 0.001)
-    
-    
+    disp(['ITERATION NO. : ',num2str(iter)]);
+        
     %Calculating other probabilities that are required
     %Calculating p(y(m)/k)
     p_ym_k = zeros(m, k);
@@ -157,14 +157,12 @@ while( mean_error > 0.001)
     
     
     %Equation 2:
-    intermediate = zeros(numz, k);
-    for i = 1:numz
-        for j = 1:k
-            intermediate(i,j) = sum( times( p_ym_k_z(:,j,i), p_ym));
-        end
-    end
-    p_z_k_n1 = times (p_z_k_n, intermediate)./m;
-    p_z_k_n1 = bsxfun(@rdivide, p_z_k_n1, P_k_n1);
+    intermediate = reshape(p_ym_k_z,m, numz*k);
+    intermediate = times(intermediate, p_ym);
+    intermediate = sum(intermediate)./m;
+    p_z_k_n_reshaped = reshape(p_z_k_n,1,numz*k);
+    p_z_k_n_reshaped = times(p_z_k_n_reshaped, intermediate);
+    p_z_k_n1 = reshape(p_z_k_n_reshaped, numz, k);
      
     
     %Equation 3:
@@ -175,7 +173,7 @@ while( mean_error > 0.001)
             coeff_sum = 0;
             for r = 1:m
                 y_m = ( patchmatrix(:,r));%, patchsize, patchsize);
-                coeff = p_ym(r)* p_ym_k_z(r,i,j);
+                coeff = p_ym(r)\ p_ym_k_z(r,i,j);
                 matsum_k_z = matsum_k_z + coeff * ( y_m * y_m.' );
                 coeff_sum = coeff_sum + coeff;
             end

@@ -90,3 +90,25 @@
 %         end
 %         p_ym(i) = prob_y( p_ym_k( i, :), P_k_n);
 %     end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%     for i = 1:numz
+%         for j = 1:k
+%             intermediate(i,j) = sum( times( p_ym_k_z(:,j,i), p_ym));
+%         end
+%     end
+%     p_z_k_n1 = times (p_z_k_n, intermediate)./m;
+%     p_z_k_n1 = bsxfun(@rdivide, p_z_k_n1, P_k_n1);
