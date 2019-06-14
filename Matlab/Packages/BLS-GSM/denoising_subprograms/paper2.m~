@@ -119,11 +119,11 @@ temp = innerProd(W)/nexp;
 
 
 for i = 1:k
-    if mod(i,2)==0
+    if mod(i,2)==0,
         Cov_k(:,:,i) = temp;
     else
         Cov_k(:,:,i) = temp';
-    end
+    end;
 end
 
 
