@@ -1,11 +1,3 @@
-clear all
-clc
-
-im0 = imread('images/barco.png');
-% im0 = imresize(im0,2);
-im0 = double(im0);
-figure(1)
-rang0 = showIm(im0,'auto');title('Original image');
 
 %Generating noisy image
 sig = 10;
@@ -37,7 +29,7 @@ paddedim = padarray(im, [lpad,hpad], 'post');
 %Vectorising the neighbourhoods
 %Extracting patches and vectorising the patches and making a new matrix
 patchmatrix = [];
-patchstep = 1;
+patchstep = patchsize;
 
 
 for i = 1:patchstep:(h-patchsize+1)
@@ -116,7 +108,7 @@ covcount = 0;
 %padding with zeros to make it divisible by patch size
 lpad2 = k - mod(l,k);
 hpad2 = k - mod(h,k);
-paddedim2 = padarray(im, [lpad2,hpad2], 'post'); 
+paddedim2 = padarray(im0, [lpad2,hpad2], 'post'); 
 
 step = size(paddedim2)/k;
 
@@ -239,6 +231,10 @@ while(iter<11)%( mean_error > 0.001)
      toc
 end
 
+figure, plot(1:10,real(loglike));
+
+%Calculating p_k_ym which is to be returned
+p_k_ym = ((p_ym_k ./ P_k_n) .* p_ym)';
 
 
 

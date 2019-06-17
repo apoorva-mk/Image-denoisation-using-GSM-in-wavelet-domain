@@ -1,32 +1,12 @@
-clear all
-clc
 
-im0 = imread('images/barco.png');
-% im0 = imresize(im0,2);
-im0 = double(im0);
-figure(1)
-rang0 = showIm(im0,'auto');title('Original image');
+function [ p_k_ym, Cov_k, p_z_k_n] = expec_maxim(im,k,patchsize,noise)
 
-%Generating noisy image
-sig = 10;
-seed = 0;
-randn('state', seed);
-noise = randn(size(im0));
-noise = noise/sqrt(mean2(noise.^2));
-im = im0 + sig*noise; 
-
-figure(2)
-rang = showIm(im,'auto');title('Noisy Image');
-
-
-%Daubechies Wavelet decomposition
-[cA1,cH1,cV1,cD1] = dwt2(im0,'db2');
 
 %EM Implementation
-patchsize = 5;
-
-im = cV1;
-im0 = im;
+% patchsize = 5;
+% 
+% im = cV1;
+% im0 = im;
 [l,h]= size(im);
 
 %padding with zeros to make it divisible by patch size
@@ -37,7 +17,7 @@ paddedim = padarray(im, [lpad,hpad], 'post');
 %Vectorising the neighbourhoods
 %Extracting patches and vectorising the patches and making a new matrix
 patchmatrix = [];
-patchstep = 1;
+patchstep = patchsize;
 
 
 for i = 1:patchstep:(h-patchsize+1)
@@ -54,7 +34,7 @@ end
 [ patchlen, m ] = size(patchmatrix);
 
 %Finding C_w
-[nv,nh,nb] = size(im0);
+[nv,nh,nb] = size(im);
 block = [patchsize,patchsize];
 nblv = nv-block(1)+1;	% Discard the outer coefficients 
 nblh = nh-block(2)+1;   % for the reference (centrral) coefficients (to avoid boundary effects)
@@ -239,7 +219,11 @@ while(iter<11)%( mean_error > 0.001)
      toc
 end
 
-figure, plot(1:10,real(loglike));
+figure, plot(1:iter-1,real(loglike));
+
+%Calculating p_k_ym which is to be returned
+p_k_ym = ((p_ym_k ./ P_k_n) .* p_ym)';
+
 
 
 

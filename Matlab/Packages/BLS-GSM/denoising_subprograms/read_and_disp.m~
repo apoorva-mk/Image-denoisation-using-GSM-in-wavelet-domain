@@ -1,0 +1,1 @@
+function im = read_and_disp(path)
