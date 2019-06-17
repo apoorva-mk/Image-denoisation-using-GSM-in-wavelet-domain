@@ -239,7 +239,7 @@ while(iter<11)%( mean_error > 0.001)
      toc
 end
 
-
+figure, plot(1:10,real(loglike));
 
 
 
