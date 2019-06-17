@@ -1,5 +1,8 @@
-clear
+clear all
+clc
+
 im0 = imread('images/barco.png');
+% im0 = imresize(im0,2);
 im0 = double(im0);
 figure(1)
 rang0 = showIm(im0,'auto');title('Original image');
@@ -34,9 +37,11 @@ paddedim = padarray(im, [lpad,hpad], 'post');
 %Vectorising the neighbourhoods
 %Extracting patches and vectorising the patches and making a new matrix
 patchmatrix = [];
-for i = 1:patchsize:(h-patchsize+1)
-    for j = 1:patchsize:(l-patchsize+1)
-        
+patchstep = 1;
+
+
+for i = 1:patchstep:(h-patchsize+1)
+    for j = 1:patchstep:(l-patchsize+1)     
         h_end = i+patchsize-1;
         l_end = j+patchsize-1;
         patch = paddedim(j:l_end , i:h_end);
@@ -50,7 +55,7 @@ end
 
 %Finding C_w
 [nv,nh,nb] = size(im0);
-block = [ 5,5];
+block = [patchsize,patchsize];
 nblv = nv-block(1)+1;	% Discard the outer coefficients 
 nblh = nh-block(2)+1;   % for the reference (centrral) coefficients (to avoid boundary effects)
 Ly = (block(1)-1)/2;		% block(1) and block(2) must be odd!
@@ -74,9 +79,13 @@ for ny = -Ly:Ly	% spatial neighbors
 end
 
 C_w = innerProd(W)/nexp;
+[Q,L] = eig(C_w);
+% correct possible negative eigenvalues, without changing the overall variance
+L = diag(diag(L).*(diag(L)>0))*sum(diag(L))/(sum(diag(L).*(diag(L)>0))+(sum(diag(L).*(diag(L)>0))==0));
+C_w = Q*L*Q';
 
 %Initialisation of proabability vectors 
-k = 3;
+k = 10;
 numz = 13;
 P_k_n = ones(1,k)/k;
 p_z_k_n = ones(numz,k)/numz;
@@ -104,33 +113,27 @@ Cov_k = zeros(patchsize^2, patchsize^2, k);
 Cov_k_n1 = zeros(patchsize^2, patchsize^2, k);
 covcount = 0;
 
-n = 0;
-for ny = -Ly:Ly	% spatial neighbors
-	for nx = -Lx:Lx
-		n = n + 1;
-		foo = shift(im(:,:,1),[ny nx]);
-		foo = foo(Ly+1:Ly+nblv,Lx+1:Lx+nblh);
-		W(:,n) = vector(foo);
-	end
-end
+%padding with zeros to make it divisible by patch size
+lpad2 = k - mod(l,k);
+hpad2 = k - mod(h,k);
+paddedim2 = padarray(im, [lpad2,hpad2], 'post'); 
 
-temp = innerProd(W)/nexp;
+step = size(paddedim2)/k;
 
 
 
 for i = 1:k
-    if mod(i,2)==0,
-        Cov_k(:,:,i) = temp;
-    else
-        Cov_k(:,:,i) = temp';
-    end;
+    temp = compute_cov( paddedim2((i-1)*step(1)+1:i*step ,:),patchsize)-C_w;
+    [Q,L] = eig(temp);
+    L = diag(diag(L).*(diag(L)>0))*sum(diag(L))/(sum(diag(L).*(diag(L)>0))+(sum(diag(L).*(diag(L)>0))==0));
+    Cov_k(:,:,i) = Q*L*Q';
 end
-
 
 %EM Algorithm implementation
 %Estimating the parameters
 iter = 1;
-while( mean_error > 0.001)
+while(iter<11)%( mean_error > 0.001)
+    tic
     disp(['ITERATION NO. : ',num2str(iter)]);
     iter = iter+1;
         
@@ -140,12 +143,11 @@ while( mean_error > 0.001)
     p_ym = zeros(1,m);
     p_ym_k_z = zeros(m,k,numz);
 
-
     for i = 1:k
         for j = 1:numz
-            p_ym_k_z (:,i,j) = gaussian_dist( patchmatrix, zi(j)*Cov_k(:,:,i)+ C_w, patchlen);
+            p_ym_k_z(:,i,j) = gaussian_dist( patchmatrix, zi(j)*Cov_k(:,:,i)+ C_w, patchlen);
         end
-    end
+    end  
     
     for i = 1:numz
         p_ym_k = p_ym_k + p_ym_k_z(:,:,i)*p_z(i);
@@ -184,7 +186,12 @@ while( mean_error > 0.001)
             end
             matsum = matsum + (matsum_k_z / coeff_sum) * p_z(j);
         end
-        Cov_k_n1(:,:,i) = matsum - C_w; 
+        Cov_k_n1(:,:,i) = real(matsum - C_w);
+%         Cov_k_n1(:,:,i)
+        [Q,L] = eig(Cov_k_n1(:,:,i));
+        % correct possible negative eigenvalues, without changing the overall variance
+        L = diag(diag(L).*(diag(L)>0))*sum(diag(L))/(sum(diag(L).*(diag(L)>0))+(sum(diag(L).*(diag(L)>0))==0));
+        Cov_k_n1(:,:,i) = Q*L*Q';
     end
     
     
@@ -222,12 +229,14 @@ while( mean_error > 0.001)
     
     mean_error = mean(err);
     
+    %Calculating log-likelihood function
+    loglike(iter-1) = sum(log(p_ym_k * P_k_n1'));
+    
      %Update the values
      P_k_n = P_k_n1;
      p_z_k_n = p_z_k_n1;
-     Cov_k = Cov_k_n1;
-    
-    
+     Cov_k = Cov_k_n1;  
+     toc
 end
 
 
