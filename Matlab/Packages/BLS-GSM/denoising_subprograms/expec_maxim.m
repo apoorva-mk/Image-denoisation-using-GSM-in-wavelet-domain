@@ -54,7 +54,7 @@ for ny = -Ly:Ly	% spatial neighbors
 		n = n + 1;
 		foo = shift(noise(:,:,1),[ny nx]);
 		foo = foo(Ly+1:Ly+nblv,Lx+1:Lx+nblh);
-		W(:,n) = vector(foo);
+		W(:,n) = vectorise(foo);
 	end
 end
 
@@ -152,7 +152,7 @@ while(iter<11)%( mean_error > 0.001)
     p_z_k_n1 = reshape(p_z_k_n_reshaped, numz, k);
      
     
-  Equation 3:
+  %Equation 3:
     for i= 1:k
         matsum = zeros(patchlen, patchlen);
         for j = 1:numz

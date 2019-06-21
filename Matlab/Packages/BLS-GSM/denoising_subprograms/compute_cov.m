@@ -21,7 +21,7 @@ for ny = -Ly:Ly	% spatial neighbors
 		n = n + 1;
 		foo = shift(im0(:,:,1),[ny nx]);
 		foo = foo(Ly+1:Ly+nblv,Lx+1:Lx+nblh);
-		W(:,n) = vector(foo);
+		W(:,n) = vectorise(foo);
 	end
 end
 
