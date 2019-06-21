@@ -72,7 +72,9 @@ for nband = 2:Nband, % everything except the low-pass residual
   end   
   
   % main
-  BL = denoi_BLS_GSM_band(BL,block,BLn,prnt,covariance,optim,sig);
+%   BL = denoi_BLS_GSM_band(BL,block,BLn,prnt,covariance,optim,sig);
+  BL = denoising_utility(BL, 1, 3, BLn);
+%   figure, imshow(BL);
   pyrh(pyrBandIndices(pind,nband)) = BL(:)';
 end
 fh = reconWUpyr(pyrh,pind,daub_order);
