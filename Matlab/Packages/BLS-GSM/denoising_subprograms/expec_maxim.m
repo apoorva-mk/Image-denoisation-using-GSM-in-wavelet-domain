@@ -152,7 +152,7 @@ while(iter<11)%( mean_error > 0.001)
     p_z_k_n1 = reshape(p_z_k_n_reshaped, numz, k);
      
     
-    %Equation 3:
+  Equation 3:
     for i= 1:k
         matsum = zeros(patchlen, patchlen);
         for j = 1:numz
@@ -174,6 +174,24 @@ while(iter<11)%( mean_error > 0.001)
         Cov_k_n1(:,:,i) = Q*L*Q';
     end
     
+
+%     p_ym_k_z_reshaped = reshape(p_ym_k_z, m, numz*k);
+%     p_ym_k_z_reshaped = (p_ym_k_z_reshaped./ p_ym);
+%     p_ym_k_z_reshaped = reshape(p_ym_k_z, m, k, numz);
+%     
+%     for i = 1:k
+%         matsum = zeros(patchlen, patchlen);
+%          for j = 1:numz
+%              matsum = matsum + (((patchmatrix .* p_ym_k_z_reshaped(:,i,j)' * patchmatrix')/sum(p_ym_k_z_reshaped(:,i,j)))*p_z(j));
+%          end
+%          Cov_k_n1(:,:,i) = real(matsum - C_w);
+%          %Cov_k_n1(:,:,i)
+%          [Q,L] = eig(Cov_k_n1(:,:,i));
+%          % correct possible negative eigenvalues, without changing the overall variance
+%          L = diag(diag(L).*(diag(L)>0))*sum(diag(L))/(sum(diag(L).*(diag(L)>0))+(sum(diag(L).*(diag(L)>0))==0));
+%          Cov_k_n1(:,:,i) = Q*L*Q';
+%          
+%     end
     
     %Normalise and find mean square error
     

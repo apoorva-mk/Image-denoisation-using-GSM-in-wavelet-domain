@@ -7,3 +7,4 @@
 function vec = vector(mtx)
 
 vec = mtx(:);
+%vec = (mtx);
