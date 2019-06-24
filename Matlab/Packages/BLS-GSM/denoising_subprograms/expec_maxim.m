@@ -174,7 +174,7 @@ while(iter<11)%( mean_error > 0.001)
     end
     
 
-%     p_ym_k_z_reshaped = reshape(p_ym_k_z, m, numz*k);
+%     p_ym_k_z_reshaped = reshape(p_ym_k_z, m, []);
 %     p_ym_k_z_reshaped = (p_ym_k_z_reshaped./ p_ym);
 %     p_ym_k_z_reshaped = reshape(p_ym_k_z, m, k, numz);
 %     
