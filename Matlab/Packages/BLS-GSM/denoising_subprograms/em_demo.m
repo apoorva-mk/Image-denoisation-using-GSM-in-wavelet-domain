@@ -15,8 +15,6 @@ im_original = read_and_disp('images/barbara.png');
 
 [Ny,Nx] = size(im_noisy);
 Nsc = ceil(log2(min(Ny,Nx)) - 4);
-
-
 hpad = (2^(Nsc+1)) - mod(Nx,(2^(Nsc+1)));
 lpad = (2^(Nsc+1)) - mod(Ny, (2^(Nsc+1)));
 
@@ -169,10 +167,3 @@ i = i+1;
 %[p_k_ym_subband_14, Cov_k_subband_14, p_z_k_14] = expec_maxim(subband_14,k,patchsize,gaussian_noise); 
 %[p_k_ym_subband_15, Cov_k_subband_15, p_z_k_15] = expec_maxim(subband_15,k,patchsize,gaussian_noise); 
 %[p_k_ym_subband_16, Cov_k_subband_16, p_z_k_16] = expec_maxim(subband_16,k,patchsize,gaussian_noise);
-
-
-
-
-
-
-

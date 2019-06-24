@@ -1,4 +1,3 @@
-
 function [ p_k_ym, Cov_k, p_z_k_n] = expec_maxim(im,k,patchsize,noise)
 
 
@@ -54,7 +53,7 @@ for ny = -Ly:Ly	% spatial neighbors
 		n = n + 1;
 		foo = shift(noise(:,:,1),[ny nx]);
 		foo = foo(Ly+1:Ly+nblv,Lx+1:Lx+nblh);
-		W(:,n) = vectorise(foo);
+		W(:,n) = vector(foo);
 	end
 end
 
@@ -151,46 +150,45 @@ while(iter<11)%( mean_error > 0.001)
     p_z_k_n_reshaped = times(p_z_k_n_reshaped, intermediate);
     p_z_k_n1 = reshape(p_z_k_n_reshaped, numz, k);
      
-  %Equation 3:
-    for i= 1:k
-        matsum = zeros(patchlen, patchlen);
-        for j = 1:numz
-            matsum_k_z = zeros(patchlen, patchlen);
-            coeff_sum = 0;
-            for r = 1:m
-                y_m = ( patchmatrix(:,r));%, patchsize, patchsize);
-                coeff = p_ym_k_z(r,i,j)/p_ym(r);
-                matsum_k_z = matsum_k_z + coeff * ( y_m * y_m.' );
-                coeff_sum = coeff_sum + coeff;
-            end
-            matsum = matsum + (matsum_k_z / coeff_sum) * p_z(j);
-        end
-        Cov_k_n1(:,:,i) = real(matsum - C_w);
-%         Cov_k_n1(:,:,i)
-        [Q,L] = eig(Cov_k_n1(:,:,i));
-        % correct possible negative eigenvalues, without changing the overall variance
-        L = diag(diag(L).*(diag(L)>0))*sum(diag(L))/(sum(diag(L).*(diag(L)>0))+(sum(diag(L).*(diag(L)>0))==0));
-        Cov_k_n1(:,:,i) = Q*L*Q';
-    end
     
-
-%     p_ym_k_z_reshaped = reshape(p_ym_k_z, m, numz*k);
-%     p_ym_k_z_reshaped = (p_ym_k_z_reshaped./ p_ym);
-%     p_ym_k_z_reshaped = reshape(p_ym_k_z, m, k, numz);
-%     
-%     for i = 1:k
+    %Equation 3:
+%     for i= 1:k
 %         matsum = zeros(patchlen, patchlen);
-%          for j = 1:numz
-%              matsum = matsum + (((patchmatrix .* p_ym_k_z_reshaped(:,i,j)' * patchmatrix')/sum(p_ym_k_z_reshaped(:,i,j)))*p_z(j));
-%          end
-%          Cov_k_n1(:,:,i) = real(matsum - C_w);
-%          %Cov_k_n1(:,:,i)
-%          [Q,L] = eig(Cov_k_n1(:,:,i));
-%          % correct possible negative eigenvalues, without changing the overall variance
-%          L = diag(diag(L).*(diag(L)>0))*sum(diag(L))/(sum(diag(L).*(diag(L)>0))+(sum(diag(L).*(diag(L)>0))==0));
-%          Cov_k_n1(:,:,i) = Q*L*Q';
-%          
+%         for j = 1:numz
+%             matsum_k_z = zeros(patchlen, patchlen);
+%             coeff_sum = 0;
+%             for r = 1:m
+%                 y_m = ( patchmatrix(:,r));%, patchsize, patchsize);
+%                 coeff = p_ym_k_z(r,i,j)/p_ym(r);
+%                 matsum_k_z = matsum_k_z + coeff * ( y_m * y_m.' );
+%                 coeff_sum = coeff_sum + coeff;
+%             end
+%             matsum = matsum + (matsum_k_z / coeff_sum) * p_z(j);
+%         end
+%         Cov_k_n1(:,:,i) = real(matsum - C_w);
+% %         Cov_k_n1(:,:,i)
+%         [Q,L] = eig(Cov_k_n1(:,:,i));
+%         % correct possible negative eigenvalues, without changing the overall variance
+%         L = diag(diag(L).*(diag(L)>0))*sum(diag(L))/(sum(diag(L).*(diag(L)>0))+(sum(diag(L).*(diag(L)>0))==0));
+%         Cov_k_n1(:,:,i) = Q*L*Q';
 %     end
+    
+    p_ym_k_z_reshaped = reshape(p_ym_k_z, m, numz*k);
+    p_ym_k_z_reshaped = p_ym_k_z_reshaped./ p_ym;
+    p_ym_k_z_reshaped = reshape(p_ym_k_z, m, k, numz);
+    
+    for i = 1:k
+        matsum = zeros(patchlen, patchlen);
+         for j = 1:numz
+             matsum = matsum + (((patchmatrix .* p_ym_k_z_reshaped(:,i,j)' * patchmatrix')/sum(p_ym_k_z(:,i,j)))*p_z(j));
+         end
+         Cov_k_n1(:,:,i) = real(matsum - C_w);
+         [Q,L] = eig(Cov_k_n1(:,:,i));
+         % correct possible negative eigenvalues, without changing the overall variance
+         L = diag(diag(L).*(diag(L)>0))*sum(diag(L))/(sum(diag(L).*(diag(L)>0))+(sum(diag(L).*(diag(L)>0))==0));
+         Cov_k_n1(:,:,i) = Q*L*Q';
+         
+    end
     
     %Normalise and find mean square error
     
@@ -241,14 +239,7 @@ figure, plot(1:iter-1,real(loglike));
 %Calculating p_k_ym which is to be returned
 p_k_ym = ((p_ym_k ./ P_k_n) .* p_ym)';
 
-
-
-
-
-
-
-
-
+a = 9;
 
 
 

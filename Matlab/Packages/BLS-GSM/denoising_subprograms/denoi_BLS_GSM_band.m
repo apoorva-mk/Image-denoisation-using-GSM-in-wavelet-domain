@@ -128,7 +128,7 @@ la = real(la).*(real(la)>0);
 % Linearly transform the observations, and keep the quadratic values (we do not model phase)
 
 V = Q'*iS*Y';
-clear Y;
+%clear Y;
 V2 = (V.^2).';
 M = S*Q;
 m = M(cent,:);
