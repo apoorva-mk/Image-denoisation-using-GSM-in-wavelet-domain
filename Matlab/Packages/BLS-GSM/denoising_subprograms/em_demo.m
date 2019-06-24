@@ -15,8 +15,6 @@ im_original = read_and_disp('images/barbara.png');
 
 [Ny,Nx] = size(im_noisy);
 Nsc = ceil(log2(min(Ny,Nx)) - 4);
-
-
 hpad = (2^(Nsc+1)) - mod(Nx,(2^(Nsc+1)));
 lpad = (2^(Nsc+1)) - mod(Ny, (2^(Nsc+1)));
 
@@ -35,7 +33,8 @@ for i=2:numpyr
     subband = reshape(subband, pind(i,1), pind(i,2));
     start = start+ (pind(i,1)*pind(i,2));
 end
-
+daub_order = 2;
+[pyr,pind] = buildWUpyr(im_noisy,Nsc,daub_order);
 %Wavelet decompostion
 %Daubechies Wavelet decomposition
 % [cA1,cH1,cV1,cD1] = dwt2(im_noisy,'db2');
@@ -44,9 +43,10 @@ end
 
 
 
+
+
 %iterating over subbands
 for i= 1:numpyr-1;
     [p_k_ym_subband(:,:,i), Cov_k_subband(:,:,:,i), p_z_k(:,:,i)] = expec_maxim(subbands(:,:,i),k,patchsize,gaussian_noise);  
 end
-
 
