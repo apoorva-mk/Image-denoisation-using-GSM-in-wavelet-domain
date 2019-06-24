@@ -8,4 +8,4 @@ noise = noise/sqrt(mean2(noise.^2));
 im_noisy = im0 + sig*noise; 
 
 figure(2)
-rang = showIm(im_noisy,'auto');title('Noisy Image');
+%rang = showIm(im_noisy,'auto');title('Noisy Image');
