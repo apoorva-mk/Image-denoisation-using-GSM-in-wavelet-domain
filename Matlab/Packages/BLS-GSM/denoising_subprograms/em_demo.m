@@ -150,6 +150,7 @@ subband_16 = reshape(subband_16, pind(i,1), pind(i,2));
 start = start+(pind(i,1)*pind(i,2));
 i = i+1;
 
+
 %p_k_ym_subband_1 = denoising_utility(subband_1,k,patchsize,gaussian_noise); 
 [p_k_ym_subband_1, Cov_k_subband_1, p_z_k_1] = expec_maxim(subband_1,k,patchsize,gaussian_noise); 
 [p_k_ym_subband_2, Cov_k_subband_2, p_z_k_2] = expec_maxim(subband_2,k,patchsize,gaussian_noise); 
